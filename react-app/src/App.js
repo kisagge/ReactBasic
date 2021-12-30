@@ -1,11 +1,13 @@
 import "./App.css";
+import { useState } from "react";
 
 //Header
 function Header(props) {
   const { title, onChangeMode } = props;
+
   function onClickHandler(evt) {
     evt.preventDefault();
-    onChangeMode();
+    onChangeMode("WELCOME");
   }
 
   return (
@@ -22,21 +24,20 @@ function Header(props) {
 //Nav
 function Nav(props) {
   const { data, onChangeMode } = props;
+
   function onClickHandler(evt) {
     evt.preventDefault();
-    onChangeMode();
+    onChangeMode("READ");
   }
-  let lis = [];
-  for (let i = 0; i < props.data.length; i = i + 1) {
-    let d = data[i];
-    lis.push(
-      <li key={d.id}>
-        <a href={"/read/" + d.id} onClick={onClickHandler}>
-          {d.title}
-        </a>
-      </li>
-    );
-  }
+
+  let lis = data.map((el) => (
+    <li key={el.id}>
+      <a href={"/read/" + el.id} onClick={onClickHandler}>
+        {el.title}
+      </a>
+    </li>
+  ));
+
   return (
     <nav>
       <ol>{lis}</ol>
@@ -55,25 +56,30 @@ function Article(props) {
 }
 
 function App() {
+  let [mode, setMode] = useState("WELCOME");
+
   let topics = [
     { id: 1, title: "html", body: "html is ..." },
     { id: 2, title: "css", body: "css is ..." },
     { id: 3, title: "js", body: "js is ..." },
   ];
 
-  function onChangeModeHandler() {
-    alert("change!");
+  function onChangeModeHandler(_mode) {
+    setMode(_mode);
   }
 
-  function onChangeNavModeHandler() {
-    alert("change!");
+  let articleTag;
+  if (mode === "WELCOME") {
+    articleTag = <Article title="Welcome" body="Hello, React!" />;
+  } else if (mode === "READ") {
+    articleTag = <Article title="Read" body="Hello, READ!" />;
   }
 
   return (
     <>
       <Header title="REACT" onChangeMode={onChangeModeHandler} />
-      <Nav data={topics} onChangeMode={onChangeNavModeHandler} />
-      <Article title="Welcome" body="Hello, React!" />
+      <Nav data={topics} onChangeMode={onChangeModeHandler} />
+      {articleTag}
     </>
   );
 }
