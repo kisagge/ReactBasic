@@ -2,7 +2,6 @@ import "./App.css";
 import { useState } from "react";
 
 function Header(props) {
-  console.log("Header");
   function onClickHandler(evt) {
     evt.preventDefault();
     props.onChangeMode("WELCOME");
@@ -40,7 +39,6 @@ function Nav(props) {
   );
 }
 function Article(props) {
-  console.log("Article");
   return (
     <article>
       <h2>{props.title}</h2>
@@ -48,13 +46,15 @@ function Article(props) {
     </article>
   );
 }
+
 function Create(props) {
   function submitHandler(evt) {
     evt.preventDefault();
     let title = evt.target.title.value;
     let body = evt.target.body.value;
     props.onSubmit(title, body);
-    console.log(title);
+    evt.target.title.value = "";
+    evt.target.body.value = "";
   }
   return (
     <article>
@@ -74,15 +74,15 @@ function Create(props) {
   );
 }
 function App() {
-  console.log("App");
   const [mode, setMode] = useState("WELCOME");
   const [id, setId] = useState(null);
-
-  let topics = [
+  const [nextId, setNextId] = useState(4);
+  const [topics, setTopics] = useState([
     { id: 1, title: "html", body: "html is ..." },
     { id: 2, title: "css", body: "css is ..." },
     { id: 3, title: "js", body: "js is ..." },
-  ];
+  ]);
+
   function changeModeHandler(_mode, _id) {
     setMode(_mode);
     setId(_id);
@@ -103,7 +103,11 @@ function App() {
     articleTag = <Article title={title} body={body} />;
   } else if (mode === "CREATE") {
     function createSubmitHandler(_title, _body) {
-      alert("Hello, Create" + _title + " " + _body);
+      let newTopics = [...topics, { id: nextId, title: _title, body: _body }];
+      setTopics(newTopics);
+      setMode("READ");
+      setId(nextId);
+      setNextId(nextId + 1);
     }
     articleTag = <Create onSubmit={createSubmitHandler}></Create>;
   } else if (mode === "UPDATE") {
@@ -119,6 +123,7 @@ function App() {
     </>
   );
 }
+
 function Control(props) {
   function ClickHandler(evt) {
     evt.preventDefault();
