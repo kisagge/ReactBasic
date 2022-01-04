@@ -38,23 +38,20 @@ function Nav(props) {
     </nav>
   );
 }
-function Article(props) {
+function Article({ title, body }) {
   return (
     <article>
-      <h2>{props.title}</h2>
-      {props.body}
+      <h2>{title}</h2>
+      {body}
     </article>
   );
 }
-
 function Create(props) {
   function submitHandler(evt) {
     evt.preventDefault();
     let title = evt.target.title.value;
     let body = evt.target.body.value;
     props.onSubmit(title, body);
-    evt.target.title.value = "";
-    evt.target.body.value = "";
   }
   return (
     <article>
@@ -73,6 +70,47 @@ function Create(props) {
     </article>
   );
 }
+function Update(props) {
+  const [title, setTitle] = useState(props.title);
+  const [body, setBody] = useState(props.body);
+  function submitHandler(evt) {
+    evt.preventDefault();
+    let title = evt.target.title.value;
+    let body = evt.target.body.value;
+    props.onSubmit(title, body);
+  }
+  return (
+    <article>
+      <h2>Update</h2>
+      <form onSubmit={submitHandler}>
+        <p>
+          <input
+            type="text"
+            name="title"
+            placeholder="title"
+            value={title}
+            onChange={(evt) => {
+              setTitle(evt.target.value);
+            }}
+          />
+        </p>
+        <p>
+          <textarea
+            name="body"
+            placeholder="body"
+            value={body}
+            onChange={(evt) => {
+              setBody(evt.target.value);
+            }}
+          ></textarea>
+        </p>
+        <p>
+          <input type="submit" value="update" />
+        </p>
+      </form>
+    </article>
+  );
+}
 function App() {
   const [mode, setMode] = useState("WELCOME");
   const [id, setId] = useState(null);
@@ -82,7 +120,6 @@ function App() {
     { id: 2, title: "css", body: "css is ..." },
     { id: 3, title: "js", body: "js is ..." },
   ]);
-
   function changeModeHandler(_mode, _id) {
     setMode(_mode);
     setId(_id);
@@ -102,16 +139,46 @@ function App() {
     }
     articleTag = <Article title={title} body={body} />;
   } else if (mode === "CREATE") {
-    function createSubmitHandler(_title, _body) {
-      let newTopics = [...topics, { id: nextId, title: _title, body: _body }];
-      setTopics(newTopics);
-      setMode("READ");
-      setId(nextId);
-      setNextId(nextId + 1);
-    }
-    articleTag = <Create onSubmit={createSubmitHandler}></Create>;
+    articleTag = (
+      <Create
+        onSubmit={(_title, _body) => {
+          let newTopic = { id: nextId, title: _title, body: _body };
+          let newTopics = [...topics];
+          newTopics.push(newTopic);
+          setTopics(newTopics);
+          setMode("READ");
+          setId(nextId);
+          setNextId(nextId + 1);
+        }}
+      ></Create>
+    );
   } else if (mode === "UPDATE") {
-    articleTag = <Article title="Update" body="Hello, Update" />;
+    let title = null;
+    let body = null;
+    for (let i = 0; i < topics.length; i++) {
+      if (topics[i].id === id) {
+        title = topics[i].title;
+        body = topics[i].body;
+      }
+    }
+    articleTag = (
+      <Update
+        title={title}
+        body={body}
+        onSubmit={(_title, _body) => {
+          let newTopics = [...topics];
+          for (let i = 0; i < newTopics.length; i++) {
+            if (newTopics[i].id === id) {
+              newTopics[i].title = _title;
+              newTopics[i].body = _body;
+              break;
+            }
+          }
+          setTopics(newTopics);
+          setMode("READ");
+        }}
+      ></Update>
+    );
   }
 
   return (
@@ -119,11 +186,10 @@ function App() {
       <Header title="WEB" onChangeMode={changeModeHandler} />
       <Nav data={topics} onChangeMode={changeModeHandler} />
       {articleTag}
-      <Control onChangeMode={changeModeHandler} />
+      <Control onChangeMode={changeModeHandler} selectedId={id} />
     </>
   );
 }
-
 function Control(props) {
   function ClickHandler(evt) {
     evt.preventDefault();
@@ -131,7 +197,17 @@ function Control(props) {
   }
   function ClickUpdateHandler(evt) {
     evt.preventDefault();
-    props.onChangeMode("UPDATE");
+    props.onChangeMode("UPDATE", props.selectedId);
+  }
+  let contextUI = null;
+  if (props.selectedId > 0) {
+    contextUI = (
+      <li>
+        <a href={"/update/" + props.selectedId} onClick={ClickUpdateHandler}>
+          update
+        </a>
+      </li>
+    );
   }
   return (
     <ul>
@@ -140,11 +216,7 @@ function Control(props) {
           create
         </a>
       </li>
-      <li>
-        <a href="/update" onClick={ClickUpdateHandler}>
-          update
-        </a>
-      </li>
+      {contextUI}
     </ul>
   );
 }
