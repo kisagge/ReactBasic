@@ -1,52 +1,46 @@
 import "./App.css";
 import { useState } from "react";
 
-//Header
 function Header(props) {
-  const { title, onChangeMode } = props;
-
+  console.log("Header");
   function onClickHandler(evt) {
     evt.preventDefault();
-    onChangeMode("WELCOME");
+    props.onChangeMode("WELCOME");
   }
-
   return (
     <header>
       <h1>
         <a href="index.html" onClick={onClickHandler}>
-          {title}
+          {props.title}
         </a>
       </h1>
     </header>
   );
 }
-
-//Nav
 function Nav(props) {
-  const { data, onChangeMode } = props;
-
-  function onClickHandler(evt) {
+  let lis = [];
+  function clickHandler(evt) {
     evt.preventDefault();
-    onChangeMode("READ", Number(evt.target.dataset.id));
+    props.onChangeMode("READ", Number(evt.target.dataset.id));
   }
-
-  let lis = data.map((el) => (
-    <li key={el.id}>
-      <a href={"/read/" + el.id} data-id={el.id} onClick={onClickHandler}>
-        {el.title}
-      </a>
-    </li>
-  ));
-
+  for (let i = 0; i < props.data.length; i = i + 1) {
+    let d = props.data[i];
+    lis.push(
+      <li key={d.id}>
+        <a href={"/read/" + d.id} data-id={d.id} onClick={clickHandler}>
+          {d.title}
+        </a>
+      </li>
+    );
+  }
   return (
     <nav>
       <ol>{lis}</ol>
     </nav>
   );
 }
-
-//Article
 function Article(props) {
+  console.log("Article");
   return (
     <article>
       <h2>{props.title}</h2>
@@ -54,9 +48,34 @@ function Article(props) {
     </article>
   );
 }
-
+function Create(props) {
+  function submitHandler(evt) {
+    evt.preventDefault();
+    let title = evt.target.title.value;
+    let body = evt.target.body.value;
+    props.onSubmit(title, body);
+    console.log(title);
+  }
+  return (
+    <article>
+      <h2>Create</h2>
+      <form onSubmit={submitHandler}>
+        <p>
+          <input type="text" name="title" placeholder="title" />
+        </p>
+        <p>
+          <textarea name="body" placeholder="body"></textarea>
+        </p>
+        <p>
+          <input type="submit" value="create" />
+        </p>
+      </form>
+    </article>
+  );
+}
 function App() {
-  let [mode, setMode] = useState("WELCOME");
+  console.log("App");
+  const [mode, setMode] = useState("WELCOME");
   const [id, setId] = useState(null);
 
   let topics = [
@@ -64,8 +83,7 @@ function App() {
     { id: 2, title: "css", body: "css is ..." },
     { id: 3, title: "js", body: "js is ..." },
   ];
-
-  function onChangeModeHandler(_mode, _id) {
+  function changeModeHandler(_mode, _id) {
     setMode(_mode);
     setId(_id);
   }
@@ -80,41 +98,45 @@ function App() {
       if (topics[i].id === id) {
         title = topics[i].title;
         body = topics[i].body;
-        articleTag = <Article title={title} body={body} />;
       }
     }
+    articleTag = <Article title={title} body={body} />;
   } else if (mode === "CREATE") {
-    articleTag = <Article title="Create" body="Hello, Create" />;
+    function createSubmitHandler(_title, _body) {
+      alert("Hello, Create" + _title + " " + _body);
+    }
+    articleTag = <Create onSubmit={createSubmitHandler}></Create>;
   } else if (mode === "UPDATE") {
     articleTag = <Article title="Update" body="Hello, Update" />;
   }
 
   return (
     <>
-      <Header title="REACT" onChangeMode={onChangeModeHandler} />
-      <Nav data={topics} onChangeMode={onChangeModeHandler} />
+      <Header title="WEB" onChangeMode={changeModeHandler} />
+      <Nav data={topics} onChangeMode={changeModeHandler} />
       {articleTag}
-      <Control onChangeMode={onChangeModeHandler} />
+      <Control onChangeMode={changeModeHandler} />
     </>
   );
 }
-
 function Control(props) {
-  const { onChangeMode } = props;
-
-  function onClickHandler(_mode, e) {
-    e.preventDefault();
-    onChangeMode(_mode);
+  function ClickHandler(evt) {
+    evt.preventDefault();
+    props.onChangeMode("CREATE");
+  }
+  function ClickUpdateHandler(evt) {
+    evt.preventDefault();
+    props.onChangeMode("UPDATE");
   }
   return (
     <ul>
       <li>
-        <a href="/create" onClick={(e) => onClickHandler("CREATE", e)}>
+        <a href="/create" onClick={ClickHandler}>
           create
         </a>
       </li>
       <li>
-        <a href="/update" onClick={(e) => onClickHandler("UPDATE", e)}>
+        <a href="/update" onClick={ClickUpdateHandler}>
           update
         </a>
       </li>
