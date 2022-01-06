@@ -27,8 +27,8 @@ function Nav(props) {
     </nav>
   );
 }
-
 function Article({ title, body }) {
+  console.log("Article");
   return (
     <article>
       <h2>{title}</h2>
@@ -111,65 +111,29 @@ function Update(props) {
   );
 }
 function App() {
+  console.log("App");
   const [mode, setMode] = useState("WELCOME");
   const [id, setId] = useState(null);
-  const [nextId, setNextId] = useState(4);
   const navigate = useNavigate();
+  console.log("id", id);
+  const [nextId, setNextId] = useState(4);
   const [topics, setTopics] = useState([
     { id: 1, title: "html", body: "html is ..." },
     { id: 2, title: "css", body: "css is ..." },
     { id: 3, title: "js", body: "js is ..." },
   ]);
-  function changeModeHandler(_mode, _id) {
-    if (_mode === "DELETE") {
-      let newTopics = [];
-      for (let i = 0; i < topics.length; i++) {
-        if (topics[i].id !== id) {
-          newTopics.push(topics[i]);
-        }
-      }
-      setTopics(newTopics);
-      setMode("WELCOME");
-      return;
-    }
-    setMode(_mode);
-    setId(_id);
-  }
-  /*
-  let articleTag;
-  if (mode === "WELCOME") {
-  } else if (mode === "READ") {
-  } else if (mode === "CREATE") {
-  } else if (mode === "UPDATE") {
-    let title = null;
-    let body = null;
+  function changeModeHandler(id) {
+    let newTopics = [];
     for (let i = 0; i < topics.length; i++) {
-      console.log(topics[i].id, id);
-      if (topics[i].id === id) {
-        title = topics[i].title;
-        body = topics[i].body;
+      if (topics[i].id !== id) {
+        newTopics.push(topics[i]);
       }
     }
-    console.log("title", title);
-    articleTag = (
-      <Update
-        title={title}
-        body={body}
-        onSubmit={(title, body) => {
-          let newTopics = [...topics];
-          for (let i = 0; i < newTopics.length; i++) {
-            if (newTopics[i].id === id) {
-              newTopics[i].title = title;
-              newTopics[i].body = body;
-            }
-          }
-          setTopics(newTopics);
-          setMode("READ");
-        }}
-      ></Update>
-    );
+    setTopics(newTopics);
+    navigate("/");
+    return;
   }
-  */
+
   return (
     <>
       <Header title="WEB" onChangeMode={changeModeHandler} />
@@ -189,6 +153,8 @@ function App() {
                 let newTopics = [...topics];
                 newTopics.push(newTopic);
                 setTopics(newTopics);
+                // setMode('READ');
+                // setId(nextId);
                 navigate("/read/" + nextId);
                 setNextId(nextId + 1);
               }}
@@ -215,20 +181,17 @@ function App() {
           }
         ></Route>
       </Routes>
+
       <Routes>
-        <Route
-          path="/"
-          element={<Control onChangeMode={changeModeHandler} />}
-        ></Route>
+        <Route path="/" element={<Control />}></Route>
         <Route
           path="/read/:id"
-          element={<Control onChangeMode={changeModeHandler} />}
+          element={<Control onDelete={changeModeHandler} />}
         ></Route>
       </Routes>
     </>
   );
 }
-
 function Read(props) {
   const params = useParams();
   const id = Number(params.id);
@@ -241,9 +204,8 @@ function Read(props) {
       body = topics[i].body;
     }
   }
-  return <Article title={title} body={body}></Article>;
+  return <Article title={title} body={body} />;
 }
-
 function Control(props) {
   const params = useParams();
   const selectedId = Number(params.id);
@@ -258,7 +220,7 @@ function Control(props) {
           <form
             onSubmit={(evt) => {
               evt.preventDefault();
-              props.onChangeMode("DELETE");
+              props.onDelete(selectedId);
             }}
           >
             <input type="submit" value="delete" />
