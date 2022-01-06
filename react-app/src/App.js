@@ -2,6 +2,7 @@ import "./App.css";
 import { useState } from "react";
 
 function Header(props) {
+  console.log("Header");
   function onClickHandler(evt) {
     evt.preventDefault();
     props.onChangeMode("WELCOME");
@@ -39,6 +40,7 @@ function Nav(props) {
   );
 }
 function Article({ title, body }) {
+  console.log("Article");
   return (
     <article>
       <h2>{title}</h2>
@@ -52,6 +54,7 @@ function Create(props) {
     let title = evt.target.title.value;
     let body = evt.target.body.value;
     props.onSubmit(title, body);
+    console.log(title);
   }
   return (
     <article>
@@ -78,6 +81,7 @@ function Update(props) {
     let title = evt.target.title.value;
     let body = evt.target.body.value;
     props.onSubmit(title, body);
+    console.log(title);
   }
   return (
     <article>
@@ -89,9 +93,7 @@ function Update(props) {
             name="title"
             placeholder="title"
             value={title}
-            onChange={(evt) => {
-              setTitle(evt.target.value);
-            }}
+            onChange={(evt) => setTitle(evt.target.value)}
           />
         </p>
         <p>
@@ -99,9 +101,7 @@ function Update(props) {
             name="body"
             placeholder="body"
             value={body}
-            onChange={(evt) => {
-              setBody(evt.target.value);
-            }}
+            onChange={(evt) => setBody(evt.target.value)}
           ></textarea>
         </p>
         <p>
@@ -112,8 +112,10 @@ function Update(props) {
   );
 }
 function App() {
+  console.log("App");
   const [mode, setMode] = useState("WELCOME");
   const [id, setId] = useState(null);
+  console.log("id", id);
   const [nextId, setNextId] = useState(4);
   const [topics, setTopics] = useState([
     { id: 1, title: "html", body: "html is ..." },
@@ -167,22 +169,23 @@ function App() {
     let title = null;
     let body = null;
     for (let i = 0; i < topics.length; i++) {
+      console.log(topics[i].id, id);
       if (topics[i].id === id) {
         title = topics[i].title;
         body = topics[i].body;
       }
     }
+    console.log("title", title);
     articleTag = (
       <Update
         title={title}
         body={body}
-        onSubmit={(_title, _body) => {
+        onSubmit={(title, body) => {
           let newTopics = [...topics];
           for (let i = 0; i < newTopics.length; i++) {
             if (newTopics[i].id === id) {
-              newTopics[i].title = _title;
-              newTopics[i].body = _body;
-              break;
+              newTopics[i].title = title;
+              newTopics[i].body = body;
             }
           }
           setTopics(newTopics);
