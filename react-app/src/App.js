@@ -28,7 +28,6 @@ function Nav(props) {
   );
 }
 function Article({ title, body }) {
-  console.log("Article");
   return (
     <article>
       <h2>{title}</h2>
