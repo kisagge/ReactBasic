@@ -1,6 +1,63 @@
 import "./App.css";
 import { useState } from "react";
 import { Link, Routes, Route, useParams, useNavigate } from "react-router-dom";
+import { createStore } from "redux";
+import { Provider } from "react-redux";
+
+function reducer(oldState, action) {
+  if (oldState === undefined) {
+    return {
+      mode: "WELCOME",
+      topics: [
+        { id: 1, title: "html", body: "html is .." },
+        { id: 2, title: "css", body: "css is .." },
+      ],
+      id: null,
+      nextId: 3,
+    };
+  }
+  const newState = { ...oldState };
+  if (action.type === "CHANGE_MODE") {
+    newState.mode = action.mode;
+  } else if (action.type === "CHANGE_ID") {
+    newState.id = action.id;
+  } else if (action.type === "CREATE") {
+    const newTopics = [...newState.topics];
+    newTopics.push({
+      id: newState.nextId,
+      title: action.title,
+      body: action.body,
+    });
+    newState.topics = newTopics;
+  } else if (action.type === "UPDATE") {
+    const newTopics = [...newState.topics];
+    for (let i = 0; i < newTopics.length; i++) {
+      let t = newTopics[i];
+      if (t.id === newState.id) {
+        t.title = action.title;
+        t.body = action.body;
+      }
+    }
+    newState.topics = newTopics;
+  } else if (action.type === "DELETE") {
+    let newTopics = [];
+    for (let i = 0; i < newState.topics.length; i++) {
+      let t = newState.topics[i];
+      if (t.id !== newState.id) {
+        newTopics.push(t);
+      }
+    }
+    newState.topics = newTopics;
+  } else if (action.type === "INCREASE_NEXT_ID") {
+    newState.nextId++;
+  }
+
+  return newState;
+}
+const store = createStore(
+  reducer,
+  window.REDUX_DEVTOOLS_EXTENSION && window.REDUX_DEVTOOLS_EXTENSION()
+);
 
 function Header(props) {
   return (
@@ -110,7 +167,6 @@ function Update(props) {
   );
 }
 function App() {
-  console.log("App");
   const [mode, setMode] = useState("WELCOME");
   const [id, setId] = useState(null);
   const navigate = useNavigate();
@@ -134,7 +190,7 @@ function App() {
   }
 
   return (
-    <>
+    <Provider store={store}>
       <Header title="WEB" onChangeMode={changeModeHandler} />
       <Nav data={topics} onChangeMode={changeModeHandler} />
       <Routes>
@@ -188,7 +244,7 @@ function App() {
           element={<Control onDelete={changeModeHandler} />}
         ></Route>
       </Routes>
-    </>
+    </Provider>
   );
 }
 function Read(props) {
