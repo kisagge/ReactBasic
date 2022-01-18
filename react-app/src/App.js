@@ -1,63 +1,7 @@
 import "./App.css";
 import { useState } from "react";
 import { Link, Routes, Route, useParams, useNavigate } from "react-router-dom";
-import { createStore } from "redux";
-import { Provider } from "react-redux";
-
-function reducer(oldState, action) {
-  if (oldState === undefined) {
-    return {
-      mode: "WELCOME",
-      topics: [
-        { id: 1, title: "html", body: "html is .." },
-        { id: 2, title: "css", body: "css is .." },
-      ],
-      id: null,
-      nextId: 3,
-    };
-  }
-  const newState = { ...oldState };
-  if (action.type === "CHANGE_MODE") {
-    newState.mode = action.mode;
-  } else if (action.type === "CHANGE_ID") {
-    newState.id = action.id;
-  } else if (action.type === "CREATE") {
-    const newTopics = [...newState.topics];
-    newTopics.push({
-      id: newState.nextId,
-      title: action.title,
-      body: action.body,
-    });
-    newState.topics = newTopics;
-  } else if (action.type === "UPDATE") {
-    const newTopics = [...newState.topics];
-    for (let i = 0; i < newTopics.length; i++) {
-      let t = newTopics[i];
-      if (t.id === newState.id) {
-        t.title = action.title;
-        t.body = action.body;
-      }
-    }
-    newState.topics = newTopics;
-  } else if (action.type === "DELETE") {
-    let newTopics = [];
-    for (let i = 0; i < newState.topics.length; i++) {
-      let t = newState.topics[i];
-      if (t.id !== newState.id) {
-        newTopics.push(t);
-      }
-    }
-    newState.topics = newTopics;
-  } else if (action.type === "INCREASE_NEXT_ID") {
-    newState.nextId++;
-  }
-
-  return newState;
-}
-const store = createStore(
-  reducer,
-  window.REDUX_DEVTOOLS_EXTENSION && window.REDUX_DEVTOOLS_EXTENSION()
-);
+import { Provider, useDispatch, useSelector } from "react-redux";
 
 function Header(props) {
   return (
@@ -85,6 +29,7 @@ function Nav(props) {
   );
 }
 function Article({ title, body }) {
+  console.log("Article");
   return (
     <article>
       <h2>{title}</h2>
@@ -167,30 +112,35 @@ function Update(props) {
   );
 }
 function App() {
+  console.log("App");
   const [mode, setMode] = useState("WELCOME");
   const [id, setId] = useState(null);
   const navigate = useNavigate();
   console.log("id", id);
-  const [nextId, setNextId] = useState(4);
-  const [topics, setTopics] = useState([
-    { id: 1, title: "html", body: "html is ..." },
-    { id: 2, title: "css", body: "css is ..." },
-    { id: 3, title: "js", body: "js is ..." },
-  ]);
+  // const [nextId, setNextId] = useState(4);
+  const nextId = useSelector((state) => state.nextId);
+  // const [topics, setTopics] = useState([
+  //   {id:1, title:'html', body:'html is ...'},
+  //   {id:2, title:'css', body:'css is ...'},
+  //   {id:3, title:'js', body:'js is ...'}
+  // ]);
+  const topics = useSelector((state) => state.topics);
+  const dispatch = useDispatch();
   function changeModeHandler(id) {
-    let newTopics = [];
-    for (let i = 0; i < topics.length; i++) {
-      if (topics[i].id !== id) {
-        newTopics.push(topics[i]);
-      }
-    }
-    setTopics(newTopics);
+    // let newTopics = [];
+    // for(let i=0; i<topics.length; i++){
+    //   if(topics[i].id !== id){
+    //     newTopics.push(topics[i]);
+    //   }
+    // }
+    // setTopics(newTopics); todo
+    dispatch({ type: "DELETE", id: id });
     navigate("/");
     return;
   }
 
   return (
-    <Provider store={store}>
+    <>
       <Header title="WEB" onChangeMode={changeModeHandler} />
       <Nav data={topics} onChangeMode={changeModeHandler} />
       <Routes>
@@ -204,14 +154,16 @@ function App() {
           element={
             <Create
               onSubmit={(_title, _body) => {
-                let newTopic = { id: nextId, title: _title, body: _body };
-                let newTopics = [...topics];
-                newTopics.push(newTopic);
-                setTopics(newTopics);
+                // let newTopic = {id:nextId, title:_title, body:_body}
+                // let newTopics = [...topics];
+                // newTopics.push(newTopic);
+                // setTopics(newTopics); todo
                 // setMode('READ');
                 // setId(nextId);
+                dispatch({ type: "CREATE", title: _title, body: _body });
                 navigate("/read/" + nextId);
-                setNextId(nextId + 1);
+                // setNextId(nextId+1);
+                dispatch({ type: "INCREASE_NEXT_ID" });
               }}
             ></Create>
           }
@@ -222,14 +174,15 @@ function App() {
             <Update
               topics={topics}
               onSubmit={(id, title, body) => {
-                let newTopics = [...topics];
-                for (let i = 0; i < newTopics.length; i++) {
-                  if (newTopics[i].id === id) {
-                    newTopics[i].title = title;
-                    newTopics[i].body = body;
-                  }
-                }
-                setTopics(newTopics);
+                // let newTopics = [...topics];
+                // for(let i=0; i<newTopics.length; i++){
+                //   if(newTopics[i].id === id){
+                //     newTopics[i].title = title;
+                //     newTopics[i].body = body;
+                //   }
+                // }
+                // setTopics(newTopics); todo
+                dispatch({ type: "UPDATE", id: id, title: title, body: body });
                 navigate("/read/" + id);
               }}
             ></Update>
@@ -244,7 +197,7 @@ function App() {
           element={<Control onDelete={changeModeHandler} />}
         ></Route>
       </Routes>
-    </Provider>
+    </>
   );
 }
 function Read(props) {
